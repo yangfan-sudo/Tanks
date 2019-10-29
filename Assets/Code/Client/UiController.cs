@@ -1,14 +1,15 @@
-﻿using LiteNetLib;
+﻿using Code.Server;
+using LiteNetLib;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Code.Client
 {
     public class UiController : MonoBehaviour
     {
-        [SerializeField] private GameMain m_GameMain;
         [SerializeField] private GameObject _uiObject;
+        [SerializeField] private ClientLogic _clientLogic;
+        [SerializeField] private ServerLogic _serverLogic;
         [SerializeField] private InputField _ipField;
 
         private void Awake()
@@ -18,17 +19,15 @@ namespace Code.Client
 
         public void OnHostClick()
         {
-            m_GameMain.StartServerLoop();
-            //_uiObject.SetActive(false);
-            SceneManager.LoadSceneAsync("Game");
+            _serverLogic.StartServer();
+            //_clientLogic.Connect("localhost");
+            _uiObject.SetActive(false);
         }
 
         public void OnConnectClick()
         {
-            
-            m_GameMain.StartClientLoop();
-            //_uiObject.SetActive(false);
-            SceneManager.LoadSceneAsync("Game");
+            _clientLogic.Connect(_ipField.text);
+            _uiObject.SetActive(false);
         }
     }
 }

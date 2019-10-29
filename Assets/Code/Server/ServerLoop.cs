@@ -2,14 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ServerLoop: IGameLoop
+public class ServerLoop:IGameLoop
 {
-    public void Update()
+    public void Init()
     {
         
     }
 
-    void IGameLoop.Start()
+    public void OnDestory()
+    {
+        
+    }
+
+    // Update is called once per frame
+    public void Update()
     {
         
     }
