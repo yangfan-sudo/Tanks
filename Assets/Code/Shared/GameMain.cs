@@ -3,18 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public interface IGameWorld
-{
-    void Init();
-    void Update();
-    void OnDestory();
 
-}
-public class GameMain : MonoBehaviour
+public class GameMain : MonoBehaviour, IGameMainHandler
 {
     private GameMain m_GameMain;
     public GameMain Instance => m_GameMain;
-    private IGameWorld m_GameWorld;
+
+    public IGameLoop GameLoop => m_GameLoop;
+
+    private IGameLoop m_GameLoop;
     private void Awake()
     {
         m_GameMain = this;
@@ -25,20 +22,19 @@ public class GameMain : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        m_GameWorld?.Update();
+        m_GameLoop?.Update();
     }
     private void OnDestroy()
     {
-        m_GameWorld?.OnDestory();
+        m_GameLoop?.OnDestory();
     }
     public void InitAsServer()
     {
-        m_GameWorld = new GameWorldServer();
-        m_GameWorld.Init();
+        m_GameLoop = new GameLoopServer();
+        m_GameLoop.Init(this);
     }
     public void InitAsClient()
     {
-        m_GameWorld = new GameWorldClient();
-        m_GameWorld.Init();
+
     }
 }

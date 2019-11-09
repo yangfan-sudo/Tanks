@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Code.Shared;
 
-public class GameWorldClient : IGameWorld
+public class GameWorldClient : IGameLoop
 {
     private ClientNetWorkManager m_NetWorkManager;
     //public LogicTimer 
