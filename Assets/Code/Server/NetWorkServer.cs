@@ -7,14 +7,14 @@ using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
 using Code.Server;
+using System;
 
 public class NetWorkServer: INetEventListener
 {
     private NetManager _netManager;
     private NetPacketProcessor _packetProcessor;
     private readonly NetDataWriter _cachedWriter = new NetDataWriter();
-    private ServerPlayerManager _playerManager;
-    private PlayerInputPacket _cachedCommand = new PlayerInputPacket();
+   
     private ServerState _serverState;
     private ushort _serverTick;
     public ushort Tick => _serverTick;
@@ -25,6 +25,23 @@ public class NetWorkServer: INetEventListener
             AutoRecycle = true
         };
     }
+    //注册消息结构
+    public bool RegisterNestedType<T>() where T : struct, INetSerializable
+    {
+        return _packetProcessor.RegisterNestedType<T>();
+    }
+    //注册消息结构
+    public void SubscribeReusable<T, TUserData>(Action<T, TUserData> onReceive) where T : class, new()
+    {
+        _packetProcessor.SubscribeReusable<T, TUserData>(onReceive);
+    }
+    private Action<NetPacketReader, NetPeer> InputReceive;
+    public void RegisterInputReceive(Action<NetPacketReader, NetPeer> callback)
+    {
+        InputReceive = callback;
+    }
+
+
     public void StartServer(int port)
     {
         if (_netManager.IsRunning)
@@ -69,7 +86,7 @@ public class NetWorkServer: INetEventListener
         switch (pt)
         {
             case PacketType.Movement:
-                OnInputReceived(reader, peer);
+                InputReceive?.Invoke(reader, peer);
                 break;
             case PacketType.Serialized:
                 _packetProcessor.ReadAllPackets(reader, peer);
@@ -78,18 +95,6 @@ public class NetWorkServer: INetEventListener
                 Debug.Log("Unhandled packet: " + pt);
                 break;
         }
-    }
-    private void OnInputReceived(NetPacketReader reader, NetPeer peer)
-    {
-        if (peer.Tag == null)
-            return;
-        _cachedCommand.Deserialize(reader);
-        var player = (ServerPlayer)peer.Tag;
-
-        bool antilagApplied = _playerManager.EnableAntilag(player);
-        player.ApplyInput(_cachedCommand, LogicTimer.FixedDelta);
-        if (antilagApplied)
-            _playerManager.DisableAntilag();
     }
     public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
     {
@@ -113,7 +118,7 @@ public class NetWorkServer: INetEventListener
     }
     #endregion
     #region Serializable  func
-    private NetDataWriter WriteSerializable<T>(PacketType type, T packet) where T : struct, INetSerializable
+    public NetDataWriter WriteSerializable<T>(PacketType type, T packet) where T : struct, INetSerializable
     {
         _cachedWriter.Reset();
         _cachedWriter.Put((byte)type);
@@ -121,7 +126,7 @@ public class NetWorkServer: INetEventListener
         return _cachedWriter;
     }
 
-    private NetDataWriter WritePacket<T>(T packet) where T : class, new()
+    public NetDataWriter WritePacket<T>(T packet) where T : class, new()
     {
         _cachedWriter.Reset();
         _cachedWriter.Put((byte)PacketType.Serialized);
@@ -130,4 +135,8 @@ public class NetWorkServer: INetEventListener
     }
     #endregion
   
+    public void SendToAll(NetDataWriter writer, DeliveryMethod options, NetPeer excludePeer=null)
+    {
+        _netManager.SendToAll(writer, options, excludePeer);
+    }
 }

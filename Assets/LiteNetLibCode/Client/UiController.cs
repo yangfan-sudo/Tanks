@@ -11,6 +11,7 @@ namespace Code.Client
         [SerializeField] private ClientLogic _clientLogic;
         [SerializeField] private ServerLogic _serverLogic;
         [SerializeField] private InputField _ipField;
+        [SerializeField] private GameMain m_GameMain;
 
         private void Awake()
         {
@@ -19,8 +20,11 @@ namespace Code.Client
 
         public void OnHostClick()
         {
-            _serverLogic.StartServer();
-            //_clientLogic.Connect("localhost");
+            //_serverLogic.StartServer();
+            ////_clientLogic.Connect("localhost");
+           
+            m_GameMain.CreateGameLoop(GameLoopType.Server);
+            _clientLogic.Connect(_ipField.text);
             _uiObject.SetActive(false);
         }
 

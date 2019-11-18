@@ -1,21 +1,26 @@
 ﻿using Code.Shared;
+using LiteNetLib;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class GameLoopServer : IGameLoop
 {
-    private ushort _serverTick;
-    public ushort Tick => _serverTick;
+  
     private IGameMainHandler m_GameMain;
     public IGameMainHandler GameMain => m_GameMain;
     private NetWorkServer m_NetWorkServer;
     public NetWorkServer NetWorkServer => m_NetWorkServer;
+
+    private GameWorldServer m_GameWorldServer;
     public void Init(IGameMainHandler gamemain)
     {
         m_GameMain = gamemain;
         m_NetWorkServer = new NetWorkServer();
         NetWorkServer.StartServer(10515);
+        m_GameWorldServer = new GameWorldServer(NetWorkServer);
+
+       
     }
 
     public void OnDestory()
@@ -25,11 +30,12 @@ public class GameLoopServer : IGameLoop
 
     public void Update()
     {
-        
+        NetWorkServer.Update();
     }
     public void OnLogicUpdate()
     {
-        _serverTick = (ushort)((_serverTick + 1) % NetworkGeneral.MaxGameSequence);
+        
+        m_GameWorldServer?.OnLogicUpdate();
 
     }
 

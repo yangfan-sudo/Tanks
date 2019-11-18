@@ -18,7 +18,6 @@ public interface IGameLoop
     void OnLateUpdate();
 
 
-
 }
 
 public interface IGameMainHandler

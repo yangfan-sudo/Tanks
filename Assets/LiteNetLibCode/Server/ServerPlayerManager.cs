@@ -7,7 +7,7 @@ namespace Code.Server
 {
     public class ServerPlayerManager : BasePlayerManager
     {
-        private readonly ServerLogic _serverLogic;
+        private readonly GameWorldServer _serverLogic;
         private readonly ServerPlayer[] _players;
         private readonly AntilagSystem _antilagSystem;
         
@@ -17,7 +17,7 @@ namespace Code.Server
         
         public override int Count => _playersCount;
 
-        public ServerPlayerManager(ServerLogic serverLogic)
+        public ServerPlayerManager(GameWorldServer serverLogic)
         {
             _serverLogic = serverLogic;
             _antilagSystem = new AntilagSystem(60, ServerLogic.MaxPlayers);

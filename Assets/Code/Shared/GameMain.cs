@@ -46,6 +46,7 @@ public class GameMain : MonoBehaviour, IGameMainHandler
     private void OnDestroy()
     {
         m_GameLoop?.OnDestory();
+        _logicTimer.Stop();
     }
     private void OnGameLoopStart()
     {

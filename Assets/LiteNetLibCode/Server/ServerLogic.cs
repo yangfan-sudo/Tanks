@@ -35,7 +35,7 @@ namespace Code.Server
             DontDestroyOnLoad(gameObject);
             _logicTimer = new LogicTimer(OnLogicUpdate);
             _packetProcessor = new NetPacketProcessor();
-            _playerManager = new ServerPlayerManager(this);
+            //_playerManager = new ServerPlayerManager(this);
             
             //register auto serializable vector2
             _packetProcessor.RegisterNestedType((w, v) => w.Put(v), r => r.GetVector2());

@@ -11,4 +11,5 @@ public interface IGameWorldHandler
     bool IsServer { get; }
     bool IsClient { get; }
     Transform EntityRoot { get; }
+    void OnLogicUpdate();
 }
