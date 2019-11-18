@@ -3,24 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameLoopServer : IGameLoop
+public class GameLoopClient : IGameLoop
 {
     private ushort _serverTick;
     public ushort Tick => _serverTick;
     private IGameMainHandler m_GameMain;
-    public IGameMainHandler GameMain => m_GameMain;
-    private NetWorkServer m_NetWorkServer;
-    public NetWorkServer NetWorkServer => m_NetWorkServer;
     public void Init(IGameMainHandler gamemain)
     {
         m_GameMain = gamemain;
-        m_NetWorkServer = new NetWorkServer();
-        NetWorkServer.StartServer(10515);
     }
 
     public void OnDestory()
     {
-        NetWorkServer.OnShutDown();
+        
     }
 
     public void Update()

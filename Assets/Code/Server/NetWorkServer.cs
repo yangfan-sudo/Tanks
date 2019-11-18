@@ -6,53 +6,110 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
+using Code.Server;
 
 public class NetWorkServer: INetEventListener
 {
     private NetManager _netManager;
     private NetPacketProcessor _packetProcessor;
     private readonly NetDataWriter _cachedWriter = new NetDataWriter();
-    public void InitNetWork()
+    private ServerPlayerManager _playerManager;
+    private PlayerInputPacket _cachedCommand = new PlayerInputPacket();
+    private ServerState _serverState;
+    private ushort _serverTick;
+    public ushort Tick => _serverTick;
+    public NetWorkServer()
     {
         _packetProcessor = new NetPacketProcessor();
         _netManager = new NetManager(this) {
             AutoRecycle = true
         };
     }
+    public void StartServer(int port)
+    {
+        if (_netManager.IsRunning)
+            return;
+        _netManager.Start(10515);
+    }
+    // Update is called once per frame
+    public void Update()
+    {
+        _netManager.PollEvents();
+    }
+    public void OnShutDown()
+    {
+        _netManager.Stop();
+    }
     #region LiteNetLib Interface
     public void OnConnectionRequest(ConnectionRequest request)
     {
-        throw new System.NotImplementedException();
+        request.AcceptIfKey("ExampleGame");
     }
 
     public void OnNetworkError(IPEndPoint endPoint, SocketError socketError)
     {
-        throw new System.NotImplementedException();
+        Debug.Log("[S] NetworkError: " + socketError);
     }
 
     public void OnNetworkLatencyUpdate(NetPeer peer, int latency)
     {
-        throw new System.NotImplementedException();
+        if (peer.Tag != null)
+        {
+            var p = (ServerPlayer)peer.Tag;
+            p.Ping = latency;
+        }
     }
 
     public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
     {
-        throw new System.NotImplementedException();
+        byte packetType = reader.GetByte();
+        if (packetType >= NetworkGeneral.PacketTypesCount)
+            return;
+        PacketType pt = (PacketType)packetType;
+        switch (pt)
+        {
+            case PacketType.Movement:
+                OnInputReceived(reader, peer);
+                break;
+            case PacketType.Serialized:
+                _packetProcessor.ReadAllPackets(reader, peer);
+                break;
+            default:
+                Debug.Log("Unhandled packet: " + pt);
+                break;
+        }
     }
+    private void OnInputReceived(NetPacketReader reader, NetPeer peer)
+    {
+        if (peer.Tag == null)
+            return;
+        _cachedCommand.Deserialize(reader);
+        var player = (ServerPlayer)peer.Tag;
 
+        bool antilagApplied = _playerManager.EnableAntilag(player);
+        player.ApplyInput(_cachedCommand, LogicTimer.FixedDelta);
+        if (antilagApplied)
+            _playerManager.DisableAntilag();
+    }
     public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
     {
-        throw new System.NotImplementedException();
+        
     }
 
     public void OnPeerConnected(NetPeer peer)
     {
-        throw new System.NotImplementedException();
+        Debug.Log("[S] Player connected: " + peer.EndPoint);
     }
 
     public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
     {
-        throw new System.NotImplementedException();
+        Debug.Log("[S] Player disconnected: " + disconnectInfo.Reason);
+
+        if (peer.Tag != null)
+        {
+            var plp = new PlayerLeavedPacket { Id = (byte)peer.Id };
+            _netManager.SendToAll(WritePacket(plp), DeliveryMethod.ReliableOrdered);
+        }
     }
     #endregion
     #region Serializable  func
@@ -72,9 +129,5 @@ public class NetWorkServer: INetEventListener
         return _cachedWriter;
     }
     #endregion
-    // Update is called once per frame
-    public void Update()
-    {
-        _netManager.PollEvents();
-    }
+  
 }

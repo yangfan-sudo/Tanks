@@ -18,6 +18,21 @@ public class GameWorldClient : IGameLoop
         m_NetWorkManager?.OnDestory();
     }
 
+    public void OnFixedUpdate()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void OnLateUpdate()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void OnLogicUpdate()
+    {
+        throw new System.NotImplementedException();
+    }
+
     // Update is called once per frame
     public void Update()
     {
